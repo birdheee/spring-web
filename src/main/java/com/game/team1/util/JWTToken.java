@@ -13,6 +13,7 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,7 +35,7 @@ public class JWTToken {
 		return JWT_TOKEN_EXPIRE;
 	}
 	
-	public String getToken(UserInfoVO user) {
+	public String getToken(String uiId) {
 		Date date = new Date();
 		long expireDate = date.getTime() + JWT_TOKEN_EXPIRE;
 		Key key = Keys.hmacShaKeyFor(JWT_TOKEN_KEY.getBytes());
@@ -43,27 +44,30 @@ public class JWTToken {
 		// 빌드 패턴
 		String token = Jwts.builder()
 		.setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-		.setSubject(user.getUiId())
+		.setSubject(uiId)
 		.setIssuedAt(date)
 		.setExpiration(new Date(expireDate))
-		.claim("user", user)
 		.signWith(key, SignatureAlgorithm.HS256)
 		.compact();
 		
 		return token;
 	}
 	
-	public UserInfoVO validToken(String token) {
+	public String getUserIdFromToken(String token) {
 		Key key = Keys.hmacShaKeyFor(JWT_TOKEN_KEY.getBytes());
 		try {
-			Object obj = Jwts.parserBuilder()
+			
+			String userId = Jwts.parserBuilder()
 			.setSigningKey(key)
 			.build()
-			.parse(token)
-			.getBody();
-			log.info("obj=>{}", obj);
+			.parseClaimsJws(token)
+			.getBody()
+			.getSubject();
+			log.info("obj=>{}", userId);
 		}catch(ExpiredJwtException eje) {
-		log.error("expired");
+			log.error("expired");
+		}catch(SignatureException se) {
+			log.error("invalid signature");
 		}
 		return null;
 	}

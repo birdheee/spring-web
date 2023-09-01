@@ -31,10 +31,10 @@ public class UserInfoServiceImpl implements UserInfoService {
 	@Override
 	public UserInfoVO login(UserInfoVO user) {
 		user = userInfoMapper.selectUserInfoByIDAndPwd(user);
-		if(user != null) { // 로그인이 됨
-			String token = jwtToken.getToken(user);
+		if(user != null) { // 로그인 됨
+			String token = jwtToken.getToken(user.getUiId());
 			user.setToken(token);
-			user.setUiPwd(null);
+			user.setUiPwd(null); // 비번 보여줄 필요 없음
 		}
 		return user;
 	}

@@ -2,7 +2,10 @@ package com.game.team1.controller;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.game.team1.service.impl.UserInfoServiceImpl;
@@ -30,11 +32,6 @@ public class UserInfoController {
 	@Autowired
 	private JWTToken jwtToken;
 	
-	@GetMapping("/valid")
-	public UserInfoVO valid(@RequestParam("token") String token) {
-		return jwtToken.validToken(token);
-	}
-	
 	@GetMapping("/expire")
 	public Long getExpire() {
 		return jwtToken.getJwtTokenExpire();
@@ -42,7 +39,10 @@ public class UserInfoController {
 	
 	// 0개 이상 검색(list)
 	@GetMapping("/user-infos")
-	public List<UserInfoVO> getUserInfos(@ModelAttribute UserInfoVO user){ // @ModelAttribute 생략 가능
+	public List<UserInfoVO> getUserInfos(HttpServletRequest req, @ModelAttribute UserInfoVO user){ // @ModelAttribute 생략 가능
+		String token = req.getHeader(HttpHeaders.AUTHORIZATION);
+		log.info("token=>{}", token);
+		jwtToken.getUserIdFromToken(token);
 		return userInfoServiceImpl.getUserInfos(user);
 	}
 	
